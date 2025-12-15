@@ -9,6 +9,7 @@ import Names from './views/Names';
 import Checklist from './views/Checklist';
 import Store from './views/Store';
 import Tracker from './views/Tracker';
+import Social from './views/Social';
 import Admin from './views/Admin';
 
 const App = () => (
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/checklist" element={<Checklist />} />
             <Route path="/store" element={<Store />} />
             <Route path="/tracker" element={<Tracker />} />
+            <Route path="/social" element={<Social />} />
           </Routes>
         </Layout>
       } />

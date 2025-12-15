@@ -1,15 +1,16 @@
 
 import React, { useState, useEffect } from 'react';
-import { Lock, Save, Plus, Trash, Edit, X, ArrowLeft, Check, ShoppingBag, ListTodo, Calendar, Settings, MessageCircle, Sparkles, Loader2, Users, Key } from 'lucide-react';
+import { Lock, Save, Plus, Trash, Edit, X, ArrowLeft, Check, ShoppingBag, ListTodo, Calendar, Settings, MessageCircle, Sparkles, Loader2, Users, Key, AlertTriangle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { 
   getProducts, saveProducts, 
   getChecklistDefinitions, saveChecklistDefinitions,
   getWeeksData, saveWeeksData,
-  getConfig, saveConfig 
+  getConfig, saveConfig,
+  getPosts, deletePost
 } from '../services/storage';
 import { generateWeeklyInfo } from '../services/ai';
-import { Product, ChecklistItem, WeekInfo, AppConfig } from '../types';
+import { Product, ChecklistItem, WeekInfo, AppConfig, Post } from '../types';
 
 const Admin: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -23,6 +24,7 @@ const Admin: React.FC = () => {
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [weeks, setWeeks] = useState<WeekInfo[]>([]);
   const [config, setConfig] = useState<AppConfig | null>(null);
+  const [posts, setPosts] = useState<Post[]>([]);
 
   // Edit States
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -41,6 +43,7 @@ const Admin: React.FC = () => {
       setChecklist(getChecklistDefinitions());
       setWeeks(getWeeksData());
       setConfig(getConfig());
+      setPosts(getPosts());
     }
   }, [isAuthenticated]);
 
@@ -192,6 +195,14 @@ const Admin: React.FC = () => {
     }
   };
 
+  // --- Social Moderation ---
+  const handleDeletePost = (id: string) => {
+    if(confirm('Tem certeza que deseja deletar este post da comunidade?')) {
+       const updated = deletePost(id);
+       setPosts(updated);
+    }
+  }
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-soft-white p-4">
@@ -277,6 +288,7 @@ const Admin: React.FC = () => {
         <TabButton id="checklist" icon={ListTodo} label="Kit Maternidade" />
         <TabButton id="weeks" icon={Calendar} label="Semanas" />
         <TabButton id="doula" icon={MessageCircle} label="Doula AI" />
+        <TabButton id="community" icon={Users} label="Comunidade" />
       </div>
 
       <main className="max-w-6xl mx-auto p-4">
@@ -383,6 +395,55 @@ const Admin: React.FC = () => {
               />
             </div>
           </div>
+        )}
+
+        {/* === COMMUNITY MODERATION === */}
+        {activeTab === 'community' && (
+           <div className="space-y-6">
+              <h2 className="text-xl font-bold text-gray-700">Moderação de Comunidade</h2>
+              <p className="text-sm text-gray-500">Gerencie os posts da rede social. Exclua conteúdo impróprio.</p>
+              
+              <div className="grid grid-cols-1 gap-4">
+                 {posts.map(post => (
+                   <div key={post.id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex gap-4">
+                      {post.image ? (
+                        <img src={post.image} className="w-24 h-24 object-cover rounded-xl shrink-0 bg-gray-100" />
+                      ) : (
+                        <div className="w-24 h-24 bg-gray-50 rounded-xl shrink-0 flex items-center justify-center">
+                           <MessageCircle className="text-gray-300 w-8 h-8" />
+                        </div>
+                      )}
+                      
+                      <div className="flex-1 min-w-0">
+                         <div className="flex justify-between items-start">
+                            <div>
+                               <h3 className="font-bold text-gray-700">{post.authorName} <span className="text-xs text-gray-400 font-normal ml-2">({new Date(post.timestamp).toLocaleString()})</span></h3>
+                               <p className="text-sm text-gray-600 mt-1 line-clamp-2">{post.content}</p>
+                            </div>
+                            <button 
+                              onClick={() => handleDeletePost(post.id)}
+                              className="text-red-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-full transition-colors"
+                              title="Excluir Post"
+                            >
+                               <Trash className="w-5 h-5" />
+                            </button>
+                         </div>
+                         <div className="flex gap-4 mt-3 text-xs text-gray-400">
+                            <span className="flex items-center gap-1"><Lock className="w-3 h-3" /> {post.likes} likes</span>
+                            <span className="flex items-center gap-1"><MessageCircle className="w-3 h-3" /> {post.comments.length} comentários</span>
+                         </div>
+                      </div>
+                   </div>
+                 ))}
+
+                 {posts.length === 0 && (
+                   <div className="text-center py-10 text-gray-400">
+                     <AlertTriangle className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                     <p>Nenhum post na comunidade.</p>
+                   </div>
+                 )}
+              </div>
+           </div>
         )}
 
         {/* === PRODUCTS (LOJINHA) === */}

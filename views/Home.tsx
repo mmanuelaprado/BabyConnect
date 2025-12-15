@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, MessageCircle, Sparkles, ShoppingBag, Users } from 'lucide-react';
+import { Calendar, MessageCircle, Sparkles, ShoppingBag, Users, Heart, ListTodo } from 'lucide-react';
 import { getUserSettings, getWeeksData, getConfig } from '../services/storage';
 import { UserSettings, WeekInfo, AppConfig } from '../types';
 
@@ -15,7 +15,6 @@ const Home: React.FC = () => {
     const handleUpdate = () => {
        setConfig(getConfig());
        setUser(getUserSettings());
-       // Re-run week calc logic if needed (handled in dependency below)
     };
     window.addEventListener('local-data-change', handleUpdate);
     return () => window.removeEventListener('local-data-change', handleUpdate);
@@ -24,7 +23,8 @@ const Home: React.FC = () => {
   useEffect(() => {
     if (user.dueDate) {
       const today = new Date();
-      const due = new Date(user.dueDate);
+      // Append time to prevent timezone shift causing 1 day off errors
+      const due = new Date(user.dueDate + "T12:00:00"); 
       
       const MS_PER_DAY = 1000 * 60 * 60 * 24;
       const daysRemaining = (due.getTime() - today.getTime()) / MS_PER_DAY;
@@ -36,6 +36,7 @@ const Home: React.FC = () => {
       if (currentWeek > 42) currentWeek = 42;
       
       const weeksData = getWeeksData();
+      // Fallback to week 1 if calculation fails or array is weird
       const info = weeksData.find(w => w.week === currentWeek) || weeksData[0];
       setCurrentWeekInfo(info);
     }
@@ -110,9 +111,9 @@ const Home: React.FC = () => {
 
       {/* Quick Actions Grid */}
       <div className="grid grid-cols-2 gap-4">
-        <MenuItem to="/doula" icon={MessageCircle} title="Doula AI" color="bg-baby-pink-dark" />
+        <MenuItem to="/social" icon={Heart} title="Momentos" color="bg-pink-400" />
+        <MenuItem to="/checklist" icon={ListTodo} title="Enxoval" color="bg-baby-pink-dark" />
         <MenuItem to="/names" icon={Sparkles} title="Nomes" color="bg-baby-blue-dark" />
-        <MenuItem to="/checklist" icon={ShoppingBag} title="Enxoval" color="bg-orange-300" />
         <MenuItem to="/tracker" icon={Calendar} title="Diário" color="bg-purple-300" />
       </div>
 

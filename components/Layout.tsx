@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Heart, MessageCircle, ShoppingBag, Calendar, Settings, Home, ListTodo, Sparkles, Instagram, ArrowLeft, Baby } from 'lucide-react';
+import { Heart, MessageCircle, ShoppingBag, Calendar, Settings, Home, ListTodo, Sparkles, Instagram, ArrowLeft, Baby, Users } from 'lucide-react';
 import { getConfig } from '../services/storage';
 
 interface LayoutProps {
@@ -26,10 +26,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navItems = [
     { path: '/', icon: Home, label: 'Início' },
     { path: '/tracker', icon: Calendar, label: 'Semanas' },
+    { path: '/social', icon: Heart, label: 'Momentos' }, // Replaced Doula in mobile priority or added
     { path: '/doula', icon: MessageCircle, label: 'Doula' },
-    { path: '/checklist', icon: ListTodo, label: 'Kit' },
+    { path: '/checklist', icon: ListTodo, label: 'Enxoval' },
     { path: '/store', icon: ShoppingBag, label: 'Lojinha' },
-    { path: '/names', icon: Sparkles, label: 'Nomes' },
+  ];
+
+  // Mobile Bottom Bar (Limited items for space)
+  const mobileNavItems = [
+    { path: '/', icon: Home, label: 'Início' },
+    { path: '/tracker', icon: Calendar, label: 'Semanas' },
+    { path: '/social', icon: Heart, label: 'Momentos' }, // Highlight feature
+    { path: '/checklist', icon: ListTodo, label: 'Enxoval' },
+    { path: '/store', icon: ShoppingBag, label: 'Loja' },
   ];
 
   return (
@@ -73,7 +82,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Mobile Bottom Navigation */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 pb-safe z-50">
         <div className="flex justify-around items-center p-2">
-          {navItems.map((item) => (
+          {mobileNavItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}

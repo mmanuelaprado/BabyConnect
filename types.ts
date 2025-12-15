@@ -49,11 +49,78 @@ export interface AppConfig {
   apiKey?: string; // Field to manually store API Key if env vars fail
 }
 
+export interface JournalEntry {
+  id: string;
+  week: number;
+  date: string;
+  content: string;
+  mood: 'happy' | 'tired' | 'anxious' | 'excited' | 'sick';
+}
+
+export interface KickSession {
+  id: string;
+  date: string; // ISO string
+  durationSeconds: number;
+  count: number;
+}
+
+export interface Contraction {
+  id: string;
+  startTime: number;
+  endTime: number | null; // null if active
+  durationSeconds?: number;
+  intervalSeconds?: number; // Time since previous contraction start
+}
+
 export interface UserSettings {
   dueDate: string | null;
   nameFavorites: NameMeaning[];
   checklistProgress: string[]; // IDs of checked items
   weeklyTasksCompleted: string[]; // Strings of completed weekly tasks (using format "week-taskindex")
+  // Social Profile
+  userName?: string;
+  userBio?: string;
+  userPhoto?: string;
+  // New Features
+  journalEntries: JournalEntry[];
+  kickSessions: KickSession[];
+  contractions: Contraction[];
+}
+
+// --- Auth Types ---
+export interface UserAccount {
+  id: string;
+  username: string;
+  passwordHash: string; // SHA-256 Hash
+  createdAt: number;
+}
+
+export interface AuthSession {
+  username: string;
+  token: string; // Simple session token
+  expiresAt: number;
+}
+
+// --- Social Network Types ---
+export interface Comment {
+  id: string;
+  authorName: string;
+  text: string;
+  timestamp: number;
+  isDev?: boolean; // Highlight admin/dev comments
+}
+
+export interface Post {
+  id: string;
+  authorName: string; // Or "Mamãe Anônima"
+  authorWeek: number; // Gestational week at time of posting
+  authorPhoto?: string;
+  content: string;
+  image?: string; // URL
+  likes: number;
+  likedByMe: boolean;
+  comments: Comment[];
+  timestamp: number;
 }
 
 export enum UserRole {
