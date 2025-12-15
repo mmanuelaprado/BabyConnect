@@ -1,23 +1,23 @@
-import React from "react";
-import { createRoot } from "react-dom/client";
-import { HashRouter, Routes, Route } from "react-router-dom";
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 
-import Layout from "./components/Layout";
-import Home from "./views/Home";
-import Doula from "./views/Doula";
-import Names from "./views/Names";
-import Checklist from "./views/Checklist";
-import Store from "./views/Store";
-import Tracker from "./views/Tracker";
-import Admin from "./views/Admin";
+import Layout from './components/Layout';
+import Home from './views/Home';
+import Doula from './views/Doula';
+import Names from './views/Names';
+import Checklist from './views/Checklist';
+import Store from './views/Store';
+import Tracker from './views/Tracker';
+import Admin from './views/Admin';
 
 const App = () => (
   <HashRouter>
     <Routes>
-      {/* Admin sem layout */}
+      {/* Admin Route - No Main Layout */}
       <Route path="/admin" element={<Admin />} />
-
-      {/* App com layout */}
+      
+      {/* App Routes - With Main Layout */}
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
         <Route path="/doula" element={<Doula />} />
@@ -30,8 +30,5 @@ const App = () => (
   </HashRouter>
 );
 
-createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+const root = createRoot(document.getElementById('root')!);
+root.render(<App />);
