@@ -1,7 +1,7 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { HashRouter, Routes, Route } from 'react-router-dom';
 
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import Home from './views/Home';
 import Doula from './views/Doula';
@@ -18,14 +18,18 @@ const App = () => (
       <Route path="/admin" element={<Admin />} />
       
       {/* App Routes - With Main Layout */}
-      <Route element={<Layout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/doula" element={<Doula />} />
-        <Route path="/names" element={<Names />} />
-        <Route path="/checklist" element={<Checklist />} />
-        <Route path="/store" element={<Store />} />
-        <Route path="/tracker" element={<Tracker />} />
-      </Route>
+      <Route path="*" element={
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/doula" element={<Doula />} />
+            <Route path="/names" element={<Names />} />
+            <Route path="/checklist" element={<Checklist />} />
+            <Route path="/store" element={<Store />} />
+            <Route path="/tracker" element={<Tracker />} />
+          </Routes>
+        </Layout>
+      } />
     </Routes>
   </HashRouter>
 );
