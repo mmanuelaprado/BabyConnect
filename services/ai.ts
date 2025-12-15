@@ -1,0 +1,103 @@
+
+import { GoogleGenAI, Type } from "@google/genai";
+import { getConfig } from "./storage";
+
+const apiKey = process.env.API_KEY || ''; // Ensure this is available
+const ai = new GoogleGenAI({ apiKey });
+
+export const getDoulaChat = () => {
+  const config = getConfig();
+  return ai.chats.create({
+    model: 'gemini-2.5-flash',
+    config: {
+      systemInstruction: config.doulaSystemInstruction,
+      temperature: 0.7, // Slightly creative but consistent
+    },
+  });
+};
+
+export const getNameMeaning = async (name: string) => {
+  try {
+    const prompt = `Analise o nome "${name}". Forneça o significado, origem, personalidade associada e 3 sugestões de nomes parecidos.`;
+    
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            name: { type: Type.STRING },
+            meaning: { type: Type.STRING },
+            origin: { type: Type.STRING },
+            personality: { type: Type.STRING },
+            suggestions: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING }
+            }
+          }
+        }
+      }
+    });
+
+    return JSON.parse(response.text || '{}');
+  } catch (error) {
+    console.error("Error getting name meaning:", error);
+    throw error;
+  }
+};
+
+interface SimpleProduct {
+  id: string;
+  name: string;
+}
+
+export const generateWeeklyInfo = async (week: number, availableProducts: SimpleProduct[] = []) => {
+  try {
+    const productsList = availableProducts.map(p => `ID: "${p.id}", Nome: "${p.name}"`).join('\n');
+
+    const prompt = `
+      Gere um conteúdo completo, carinhoso e útil para uma gestante na ${week}ª semana de gravidez.
+      
+      Produtos Disponíveis na Loja do App:
+      ${productsList}
+
+      Tarefas:
+      1. Descreva mudanças no corpo e sintomas.
+      2. Dê uma dica valiosa ou aviso de segurança.
+      3. Crie uma checklist com 3 a 4 tarefas curtas para fazer nesta semana.
+      4. Da lista de "Produtos Disponíveis" acima, escolha o ID do produto que faz mais sentido recomendar para esta semana. Se nenhum for relevante, retorne string vazia.
+
+      Tom de voz: Gentil, maternal e direto.
+      Idioma: Português do Brasil.
+    `;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            bodyChanges: { type: Type.STRING, description: "Resumo das mudanças no corpo." },
+            symptoms: { type: Type.STRING, description: "Sintomas comuns." },
+            tips: { type: Type.STRING, description: "Dica ou aviso importante." },
+            recommendedProductId: { type: Type.STRING, description: "O ID do produto recomendado (deve ser um dos IDs fornecidos) ou vazio." },
+            weeklyChecklist: { 
+              type: Type.ARRAY, 
+              items: { type: Type.STRING },
+              description: "Lista de 3 a 5 tarefas curtas." 
+            }
+          }
+        }
+      }
+    });
+
+    return JSON.parse(response.text || '{}');
+  } catch (error) {
+    console.error("Error generating weekly info:", error);
+    throw error;
+  }
+};
