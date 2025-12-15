@@ -46,6 +46,7 @@ export interface AppConfig {
   whatsappGroupLink?: string; // New field for WhatsApp Group
   doulaSystemInstruction: string;
   adminPassword?: string; // In a real app, this would be salted/hashed backend side
+  apiKey?: string; // Field to manually store API Key if env vars fail
 }
 
 export interface UserSettings {

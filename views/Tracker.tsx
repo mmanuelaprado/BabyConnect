@@ -29,16 +29,26 @@ const Tracker: React.FC = () => {
 
     window.addEventListener('local-data-change', handleDataUpdate);
     return () => window.removeEventListener('local-data-change', handleDataUpdate);
-  }, []); // Dependency array empty to set up listener once
+  }, []); 
 
   const calculateWeek = (dueDateStr: string) => {
     const today = new Date();
     const due = new Date(dueDateStr);
-    const diffTime = due.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    let week = 40 - Math.floor(diffDays / 7);
     
-    // Clamp
+    // Calculate difference in days
+    const MS_PER_DAY = 1000 * 60 * 60 * 24;
+    const daysRemaining = (due.getTime() - today.getTime()) / MS_PER_DAY;
+    
+    // Standard pregnancy is 280 days (40 weeks)
+    // Elapsed days = 280 - remaining
+    const daysElapsed = 280 - daysRemaining;
+    
+    // Week calculation: floor(elapsed / 7) + 1
+    // e.g. 0-6 days elapsed = Week 1
+    // e.g. 273-279 days elapsed = Week 40
+    let week = Math.floor(daysElapsed / 7) + 1;
+    
+    // Clamp to valid range 1-42
     if (week < 1) week = 1;
     if (week > 42) week = 42;
 
@@ -107,27 +117,37 @@ const Tracker: React.FC = () => {
       <div className="bg-lilac text-white p-8 rounded-3xl shadow-lg text-center relative overflow-hidden">
          <div className="relative z-10">
             <h1 className="text-5xl font-bold mb-2">{currentWeek}ª Semana</h1>
-            <p className="text-lg opacity-90 mb-4">{weekInfo.babySize}</p>
+            <p className="text-lg font-medium opacity-90 mb-4 bg-white/20 inline-block px-4 py-1 rounded-full">{weekInfo.babySize}</p>
          </div>
          
          {/* Decorative */}
          <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full -mr-10 -mt-10 blur-xl"></div>
       </div>
 
-      {/* Info Cards */}
-      <div className="space-y-4">
-         <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-            <h3 className="text-blue-400 font-bold mb-2 flex items-center gap-2">
+      {/* Main Development Text (The "Texto Acolhedor") */}
+      <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+         <h3 className="text-lilac-dark font-bold mb-3 flex items-center gap-2 text-lg">
+             ✨ Desenvolvimento
+         </h3>
+         <p className="text-gray-600 leading-relaxed text-sm md:text-base whitespace-pre-line">
+            {weekInfo.development}
+         </p>
+      </div>
+
+      {/* Info Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+         <div className="bg-blue-50 p-5 rounded-2xl border border-blue-100">
+            <h3 className="text-blue-500 font-bold mb-2 flex items-center gap-2">
                 <Info className="w-5 h-5" /> Mudanças no Corpo
             </h3>
-            <p className="text-gray-600 text-sm">{weekInfo.bodyChanges}</p>
+            <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line">{weekInfo.bodyChanges}</p>
          </div>
 
          <div className="bg-orange-50 p-5 rounded-2xl border border-orange-100">
             <h3 className="text-orange-500 font-bold mb-2 flex items-center gap-2">
                 <AlertCircle className="w-5 h-5" /> Sintomas Comuns
             </h3>
-            <p className="text-gray-600 text-sm">{weekInfo.symptoms}</p>
+            <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line">{weekInfo.symptoms}</p>
          </div>
       </div>
 
@@ -160,6 +180,14 @@ const Tracker: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Daily Tip */}
+      <div className="bg-purple-50 p-5 rounded-2xl border border-purple-100">
+        <h3 className="text-purple-500 font-bold mb-2 flex items-center gap-2">
+            💡 Dica da Semana
+        </h3>
+        <p className="text-gray-600 text-sm italic whitespace-pre-line">"{weekInfo.tips}"</p>
+      </div>
 
       {/* Recommendation */}
       {weekInfo.recommendedProductId && (

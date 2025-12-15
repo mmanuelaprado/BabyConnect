@@ -25,13 +25,17 @@ const Home: React.FC = () => {
     if (user.dueDate) {
       const today = new Date();
       const due = new Date(user.dueDate);
-      const diffTime = due.getTime() - today.getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      const weeksLeft = Math.floor(diffDays / 7);
-      const currentWeek = 40 - weeksLeft;
+      
+      const MS_PER_DAY = 1000 * 60 * 60 * 24;
+      const daysRemaining = (due.getTime() - today.getTime()) / MS_PER_DAY;
+      const daysElapsed = 280 - daysRemaining;
+      
+      let currentWeek = Math.floor(daysElapsed / 7) + 1;
+      
+      if (currentWeek < 1) currentWeek = 1;
+      if (currentWeek > 42) currentWeek = 42;
       
       const weeksData = getWeeksData();
-      // Ensure we get data, fallback to week 1 safely
       const info = weeksData.find(w => w.week === currentWeek) || weeksData[0];
       setCurrentWeekInfo(info);
     }

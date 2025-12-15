@@ -2,34 +2,62 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { getConfig } from "./storage";
 
-// Safety check to prevent "process is not defined" crash in browser environments
+// Helper to determine the best available API Key
 const getApiKey = () => {
+  // 1. Try Local Storage (User configured via Admin Panel)
+  // This is the most reliable method for client-side Vercel deployments without backend
+  const config = getConfig();
+  if (config.apiKey && config.apiKey.trim() !== '') {
+    return config.apiKey;
+  }
+
+  // 2. Try Standard Environment Variable (Process - Webpack/CRA/Node)
   try {
     if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
       return process.env.API_KEY;
     }
   } catch (e) {
-    // Ignore error
+    // ignore
   }
+
+  // 3. Try Vite Environment Variable (import.meta.env)
+  try {
+    // @ts-ignore
+    if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_KEY) {
+      // @ts-ignore
+      return import.meta.env.VITE_API_KEY;
+    }
+  } catch (e) {
+    // ignore
+  }
+
   return '';
 };
 
-const apiKey = getApiKey();
-const ai = new GoogleGenAI({ apiKey });
+// Dynamic client generator
+const getAiClient = () => {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    console.warn("Gemini API Key missing. Configure in Admin or Env Vars.");
+  }
+  return new GoogleGenAI({ apiKey });
+}
 
 export const getDoulaChat = () => {
   const config = getConfig();
+  const ai = getAiClient();
   return ai.chats.create({
     model: 'gemini-2.5-flash',
     config: {
       systemInstruction: config.doulaSystemInstruction,
-      temperature: 0.7, // Slightly creative but consistent
+      temperature: 0.7,
     },
   });
 };
 
 export const getNameMeaning = async (name: string) => {
   try {
+    const ai = getAiClient();
     const prompt = `Analise o nome "${name}". Forneça o significado, origem, personalidade associada e 3 sugestões de nomes parecidos.`;
     
     const response = await ai.models.generateContent({
@@ -67,6 +95,7 @@ interface SimpleProduct {
 
 export const generateWeeklyInfo = async (week: number, availableProducts: SimpleProduct[] = []) => {
   try {
+    const ai = getAiClient();
     const productsList = availableProducts.map(p => `ID: "${p.id}", Nome: "${p.name}"`).join('\n');
 
     const prompt = `

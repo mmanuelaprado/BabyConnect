@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Lock, Save, Plus, Trash, Edit, X, ArrowLeft, Check, ShoppingBag, ListTodo, Calendar, Settings, MessageCircle, Sparkles, Loader2, Users } from 'lucide-react';
+import { Lock, Save, Plus, Trash, Edit, X, ArrowLeft, Check, ShoppingBag, ListTodo, Calendar, Settings, MessageCircle, Sparkles, Loader2, Users, Key } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { 
   getProducts, saveProducts, 
@@ -16,6 +16,7 @@ const Admin: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [showApiKey, setShowApiKey] = useState(false);
   
   // Data State
   const [products, setProducts] = useState<Product[]>([]);
@@ -283,6 +284,32 @@ const Admin: React.FC = () => {
         {activeTab === 'dashboard' && config && (
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-6">
             <h2 className="text-xl font-bold text-gray-700">Identidade Visual e Configurações</h2>
+            
+            {/* API Key Section */}
+            <div className="bg-orange-50 border border-orange-100 p-4 rounded-2xl mb-6">
+               <h3 className="font-bold text-orange-700 flex items-center gap-2 mb-2">
+                 <Key className="w-5 h-5" /> Configuração da IA (Importante)
+               </h3>
+               <p className="text-sm text-orange-800 mb-3">
+                 Para que a Doula AI funcione corretamente após o deploy (Vercel), cole sua Gemini API Key abaixo. Ela será salva de forma segura no navegador.
+               </p>
+               <div className="relative">
+                 <input 
+                   type={showApiKey ? "text" : "password"}
+                   value={config.apiKey || ''}
+                   onChange={(e) => setConfig({ ...config, apiKey: e.target.value })}
+                   placeholder="Cole sua chave aqui (começa com AIza...)"
+                   className="w-full p-3 pr-12 rounded-xl border border-orange-200 outline-none focus:ring-2 focus:ring-orange-400"
+                 />
+                 <button 
+                   onClick={() => setShowApiKey(!showApiKey)}
+                   className="absolute right-3 top-1/2 -translate-y-1/2 text-orange-400 hover:text-orange-600 font-bold text-xs"
+                 >
+                   {showApiKey ? "Ocultar" : "Mostrar"}
+                 </button>
+               </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-bold text-gray-500 mb-1">Nome do Aplicativo</label>
@@ -338,11 +365,6 @@ const Admin: React.FC = () => {
                   className="w-full p-3 rounded-xl border border-green-200 outline-none focus:ring-2 focus:ring-green-400 bg-green-50"
                 />
               </div>
-            </div>
-            <div className="bg-blue-50 p-4 rounded-xl">
-               <p className="text-sm text-blue-600">
-                 Dica: Clique em "Salvar Tudo" no topo da página para aplicar as alterações no aplicativo.
-               </p>
             </div>
           </div>
         )}
