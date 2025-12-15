@@ -1,0 +1,10 @@
+import { Outlet } from "react-router-dom";
+
+export default function Layout() {
+  return (
+    <div style={{ minHeight: "100vh", background: "#fafafa" }}>
+      {/* Aqui depois você coloca header/menu */}
+      <Outlet />
+    </div>
+  );
+}
