@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Heart, MessageCircle, ShoppingBag, Calendar, Settings, Home, ListTodo, Sparkles, Instagram, ArrowLeft } from 'lucide-react';
+import { Heart, MessageCircle, ShoppingBag, Calendar, Settings, Home, ListTodo, Sparkles, Instagram, ArrowLeft, Baby } from 'lucide-react';
 import { getConfig } from '../services/storage';
 
 interface LayoutProps {
@@ -51,8 +51,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             {config.logoUrl ? (
               <img src={config.logoUrl} alt="Logo" className="h-8 w-auto object-contain bg-white rounded-full" />
             ) : (
-              <div className="bg-lilac p-2 rounded-full">
-                <Heart className="text-white w-6 h-6 fill-current" />
+              <div className="w-10 h-10 bg-[#FAF9F6] rounded-full flex items-center justify-center shadow-sm border border-gray-100">
+                <div className="w-8 h-8 bg-baby-pink-dark rounded-full flex items-center justify-center">
+                  <Baby className="text-[#4A3728] w-5 h-5" strokeWidth={2.5} />
+                </div>
               </div>
             )}
             <h1 className="text-xl font-bold text-lilac-dark tracking-tight">{config.appName}</h1>
