@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, User, Bot, Loader2, Sparkles, Heart, HelpCircle, Baby, Calendar } from 'lucide-react';
 import { DOULA_SCRIPTS, DoulaScript } from '../data/doulaScripts';
+import { getDoulaChatHistory, saveDoulaChatHistory } from '../services/storage';
 
 interface Message {
   id: number;
@@ -10,12 +11,26 @@ interface Message {
 }
 
 const Doula: React.FC = () => {
-  const [messages, setMessages] = useState<Message[]>([
-    { id: 1, role: 'model', text: 'Olá! Sou sua Doula Virtual. Estou aqui para te acolher com mensagens de carinho e informação. Escolha um tema abaixo ou digite o que está sentindo. 💖' }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const history = getDoulaChatHistory();
+    if (history && history.length > 0) {
+      setMessages(history);
+    } else {
+      setMessages([{ id: 1, role: 'model', text: 'Olá! Sou sua Doula Virtual. Estou aqui para te acolher com mensagens de carinho e informação. Escolha um tema abaixo ou digite o que está sentindo. 💖' }]);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      saveDoulaChatHistory(messages);
+      scrollToBottom();
+    }
+  }, [messages]);
 
   const categories = [
     { id: 'Emoções', label: 'Emoções', icon: Heart },
@@ -28,10 +43,6 @@ const Doula: React.FC = () => {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
 
   const findBestScript = (text: string): string => {
     const lowerText = text.toLowerCase();

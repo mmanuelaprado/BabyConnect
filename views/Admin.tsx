@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Lock, Save, Plus, Trash, Edit, X, ArrowLeft, Check, ShoppingBag, ListTodo, Calendar, Settings, MessageCircle, Sparkles, Loader2, Users, Key, AlertTriangle, Upload, Image as ImageIcon } from 'lucide-react';
+import { Lock, Save, Plus, Trash, Edit, X, ArrowLeft, Check, ShoppingBag, ListTodo, Calendar, Settings, MessageCircle, Sparkles, Loader2, Users, Key, AlertTriangle, Upload, Image as ImageIcon, Database, Download, UploadCloud } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { 
   getProducts, saveProducts, 
@@ -8,7 +8,8 @@ import {
   getWeeksData, saveWeeksData,
   getConfig, saveConfig,
   getPosts, deletePost,
-  fileToBase64
+  fileToBase64,
+  createBackup, restoreBackup
 } from '../services/storage';
 import { generateWeeklyInfo } from '../services/ai';
 import { Product, ChecklistItem, WeekInfo, AppConfig, Post } from '../types';
@@ -78,6 +79,37 @@ const Admin: React.FC = () => {
       alert('❌ Erro ao salvar alterações.');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  // --- Backup Functions ---
+  const handleDownloadBackup = () => {
+    const json = createBackup();
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `babyconnect_backup_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleRestoreBackup = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          const success = restoreBackup(event.target.result as string);
+          if (success) {
+            alert('✅ Backup restaurado com sucesso! A página será recarregada.');
+            window.location.reload();
+          } else {
+            alert('❌ Erro ao restaurar backup. Arquivo inválido.');
+          }
+        }
+      };
+      reader.readAsText(file);
     }
   };
 
@@ -180,9 +212,7 @@ const Admin: React.FC = () => {
     if (!currentWeekInfo) return;
     setIsGeneratingAI(true);
     try {
-      // Create a simplified list of products for the AI to choose from
       const availableProducts = products.map(p => ({ id: p.id, name: p.name }));
-      
       const data = await generateWeeklyInfo(selectedWeek, availableProducts);
       
       if (data) {
@@ -192,7 +222,6 @@ const Admin: React.FC = () => {
           symptoms: data.symptoms || currentWeekInfo.symptoms,
           tips: data.tips || currentWeekInfo.tips,
           weeklyChecklist: data.weeklyChecklist || currentWeekInfo.weeklyChecklist,
-          // Only update product if AI returned a valid ID that exists in our list
           recommendedProductId: (data.recommendedProductId && products.some(p => p.id === data.recommendedProductId)) 
             ? data.recommendedProductId 
             : currentWeekInfo.recommendedProductId
@@ -298,6 +327,7 @@ const Admin: React.FC = () => {
       {/* Tabs */}
       <div className="max-w-6xl mx-auto p-4 flex gap-2 overflow-x-auto no-scrollbar">
         <TabButton id="dashboard" icon={Settings} label="Geral" />
+        <TabButton id="backup" icon={Database} label="Backup" />
         <TabButton id="products" icon={ShoppingBag} label="Lojinha" />
         <TabButton id="checklist" icon={ListTodo} label="Kit Maternidade" />
         <TabButton id="weeks" icon={Calendar} label="Semanas" />
@@ -306,6 +336,45 @@ const Admin: React.FC = () => {
       </div>
 
       <main className="max-w-6xl mx-auto p-4">
+        {/* === BACKUP TAB === */}
+        {activeTab === 'backup' && (
+          <div className="space-y-6">
+             <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+                <h2 className="text-xl font-bold text-gray-700 mb-4 flex items-center gap-2">
+                   <Database className="w-5 h-5 text-lilac-dark" /> Backup e Restauração
+                </h2>
+                <p className="text-sm text-gray-500 mb-6">
+                   Baixe uma cópia de todos os dados do aplicativo (produtos, posts, configurações) para segurança, ou restaure um backup anterior.
+                   <br/><strong>Nota:</strong> Isso é útil caso você limpe o cache do navegador ou mude de dispositivo.
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                   <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100 flex flex-col items-center text-center">
+                      <Download className="w-10 h-10 text-blue-500 mb-3" />
+                      <h3 className="font-bold text-blue-700 mb-2">Baixar Backup</h3>
+                      <p className="text-xs text-blue-600 mb-4">Salva um arquivo .json com todos os seus dados atuais.</p>
+                      <button 
+                        onClick={handleDownloadBackup}
+                        className="bg-blue-500 text-white px-6 py-2 rounded-xl font-bold text-sm hover:bg-blue-600 transition-colors"
+                      >
+                        Fazer Download
+                      </button>
+                   </div>
+
+                   <div className="bg-green-50 p-6 rounded-2xl border border-green-100 flex flex-col items-center text-center">
+                      <UploadCloud className="w-10 h-10 text-green-500 mb-3" />
+                      <h3 className="font-bold text-green-700 mb-2">Restaurar Backup</h3>
+                      <p className="text-xs text-green-600 mb-4">Carrega um arquivo .json e substitui os dados atuais.</p>
+                      <label className="bg-green-500 text-white px-6 py-2 rounded-xl font-bold text-sm hover:bg-green-600 transition-colors cursor-pointer">
+                        Selecionar Arquivo
+                        <input type="file" accept=".json" onChange={handleRestoreBackup} className="hidden" />
+                      </label>
+                   </div>
+                </div>
+             </div>
+          </div>
+        )}
+
         {/* === CONFIG / DASHBOARD === */}
         {activeTab === 'dashboard' && config && (
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-6">
@@ -317,7 +386,7 @@ const Admin: React.FC = () => {
                  <Key className="w-5 h-5" /> Configuração da IA (Importante)
                </h3>
                <p className="text-sm text-orange-800 mb-3">
-                 Para que a Doula AI funcione corretamente após o deploy (Vercel), cole sua Gemini API Key abaixo. Ela será salva de forma segura no navegador.
+                 Para usar funcionalidades de IA no Painel Admin (gerar conteúdo), insira sua chave abaixo.
                </p>
                <div className="relative">
                  <input 
@@ -398,10 +467,13 @@ const Admin: React.FC = () => {
         {/* === DOULA AI CONFIG === */}
         {activeTab === 'doula' && config && (
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-6">
-            <h2 className="text-xl font-bold text-gray-700">Configuração da Doula AI</h2>
+            <h2 className="text-xl font-bold text-gray-700">Configuração da Doula</h2>
+            <p className="text-sm text-gray-500">
+               A Doula agora opera em modo offline com scripts fixos para maior rapidez e estabilidade. 
+               As configurações de IA abaixo são usadas apenas para gerar conteúdo de semanas no painel Admin.
+            </p>
             <div>
-              <label className="block text-sm font-bold text-gray-500 mb-1">Instruções do Sistema (Prompt)</label>
-              <p className="text-xs text-gray-400 mb-2">Defina como a IA deve se comportar, o tom de voz e o que ela pode ou não responder.</p>
+              <label className="block text-sm font-bold text-gray-500 mb-1">Instruções do Sistema (Prompt p/ Admin)</label>
               <textarea 
                 value={config.doulaSystemInstruction}
                 onChange={(e) => setConfig({ ...config, doulaSystemInstruction: e.target.value })}
