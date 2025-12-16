@@ -1,9 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, User, Bot, Loader2, Sparkles, AlertCircle } from 'lucide-react';
-import { getDoulaChat } from '../services/ai';
-import { getAiUsageStatus, incrementAiUsage } from '../services/storage';
-import { GenerateContentResponse } from '@google/genai';
+import { Send, User, Bot, Loader2, Sparkles, Heart, HelpCircle, Baby, Calendar } from 'lucide-react';
+import { DOULA_SCRIPTS, DoulaScript } from '../data/doulaScripts';
 
 interface Message {
   id: number;
@@ -13,24 +11,19 @@ interface Message {
 
 const Doula: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
-    { id: 1, role: 'model', text: 'Olá! Sou sua Doula Virtual. Como posso ajudar você e seu bebê hoje? Estou aqui para tirar dúvidas sobre sintomas, enxoval, amamentação ou apenas conversar. 💖' }
+    { id: 1, role: 'model', text: 'Olá! Sou sua Doula Virtual. Estou aqui para te acolher com mensagens de carinho e informação. Escolha um tema abaixo ou digite o que está sentindo. 💖' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [usageStatus, setUsageStatus] = useState(getAiUsageStatus());
-  
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
-  // Keep the chat instance in a ref to maintain context
-  const chatRef = useRef<any>(null);
 
-  useEffect(() => {
-    if (!chatRef.current) {
-      chatRef.current = getDoulaChat();
-    }
-    // Refresh usage status on mount
-    setUsageStatus(getAiUsageStatus());
-  }, []);
+  const categories = [
+    { id: 'Emoções', label: 'Emoções', icon: Heart },
+    { id: 'Gestação', label: 'Gestação', icon: HelpCircle },
+    { id: 'Trimestres', label: 'Fases', icon: Calendar },
+    { id: 'Parto', label: 'Parto', icon: Sparkles },
+    { id: 'Bebê', label: 'Bebê', icon: Baby },
+  ];
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -40,49 +33,67 @@ const Doula: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
+  const findBestScript = (text: string): string => {
+    const lowerText = text.toLowerCase();
+    
+    // 1. Tentar encontrar por palavra-chave exata
+    const matches = DOULA_SCRIPTS.filter(script => 
+      script.keywords.some(keyword => lowerText.includes(keyword)) ||
+      script.title.toLowerCase().includes(lowerText)
+    );
 
-    // Strict double check before sending
-    const currentStatus = getAiUsageStatus();
-    if (currentStatus.isBlocked) {
-      setUsageStatus(currentStatus);
-      return;
+    if (matches.length > 0) {
+      // Retorna um aleatório entre os que deram match
+      const random = matches[Math.floor(Math.random() * matches.length)];
+      return random.message;
     }
 
-    const userMsg: Message = { id: Date.now(), role: 'user', text: input };
+    // 2. Se não achar, retornar uma mensagem genérica aleatória
+    const randomFallback = DOULA_SCRIPTS[Math.floor(Math.random() * DOULA_SCRIPTS.length)];
+    return `Entendo. Sobre isso, aqui vai uma reflexão: "${randomFallback.message}"`;
+  };
+
+  const getRandomScriptByCategory = (category: string): string => {
+    const filtered = DOULA_SCRIPTS.filter(s => s.category === category);
+    if (filtered.length === 0) return "Estou aqui para te apoiar.";
+    const random = filtered[Math.floor(Math.random() * filtered.length)];
+    return random.message;
+  }
+
+  const handleSend = async (textOverride?: string) => {
+    const textToSend = textOverride || input;
+    if (!textToSend.trim() || isLoading) return;
+
+    const userMsg: Message = { id: Date.now(), role: 'user', text: textToSend };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setIsLoading(true);
 
-    try {
-      // Consume one credit
-      const newStatus = incrementAiUsage();
-      setUsageStatus(newStatus);
-
-      const result: GenerateContentResponse = await chatRef.current.sendMessage({ message: userMsg.text });
-      const responseText = result.text || 'Desculpe, não consegui entender. Pode repetir?';
+    // Simulate "thinking" time
+    setTimeout(() => {
+      let responseText = '';
       
+      // Check if text matches a category exactly (button click)
+      const catMatch = categories.find(c => c.label === textToSend || c.id === textToSend);
+      if (catMatch) {
+         responseText = getRandomScriptByCategory(catMatch.id);
+      } else {
+         responseText = findBestScript(textToSend);
+      }
+
       const botMsg: Message = { id: Date.now() + 1, role: 'model', text: responseText };
       setMessages(prev => [...prev, botMsg]);
-    } catch (error) {
-      console.error(error);
-      const errorMsg: Message = { id: Date.now() + 1, role: 'model', text: 'Tive um pequeno problema técnico. Tente novamente em instantes. 🌸' };
-      setMessages(prev => [...prev, errorMsg]);
-    } finally {
       setIsLoading(false);
-    }
+    }, 1000);
   };
 
   return (
     <div className="flex flex-col h-[calc(100vh-140px)] md:h-[calc(100vh-100px)]">
-      {/* Header Info with Remaining Credits */}
+      {/* Header Info */}
       <div className="bg-lilac/20 p-2 rounded-t-xl flex justify-between items-center text-xs text-lilac-dark font-bold px-4 mb-2">
-         <span className="flex items-center gap-1"><Sparkles className="w-3 h-3" /> Assistente Inteligente</span>
+         <span className="flex items-center gap-1"><Sparkles className="w-3 h-3" /> Doula Virtual (Offline)</span>
          <span>
-           {usageStatus.isBlocked 
-             ? "Limite diário atingido" 
-             : `${usageStatus.remaining} interações restantes hoje`}
+           Disponível 24h
          </span>
       </div>
 
@@ -118,39 +129,40 @@ const Doula: React.FC = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Conditional Input Area */}
+      {/* Quick Actions Categories */}
+      <div className="px-4 py-2 overflow-x-auto no-scrollbar flex gap-2">
+        {categories.map(cat => (
+          <button
+            key={cat.id}
+            onClick={() => handleSend(cat.id)}
+            disabled={isLoading}
+            className="flex items-center gap-1 bg-white border border-gray-200 text-gray-600 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap hover:bg-lilac hover:text-lilac-dark hover:border-lilac transition-colors"
+          >
+            <cat.icon className="w-3 h-3" /> {cat.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Input Area */}
       <div className="mt-2 sticky bottom-0">
-        {usageStatus.isBlocked ? (
-          <div className="bg-white p-4 rounded-2xl shadow-lg border border-red-100 flex flex-col items-center text-center gap-2">
-             <div className="bg-lilac p-3 rounded-full">
-               <AlertCircle className="w-6 h-6 text-lilac-dark" />
-             </div>
-             <p className="text-gray-700 font-bold text-sm">
-               Você utilizou as 3 interações gratuitas de hoje.
-             </p>
-             <p className="text-gray-400 text-xs">
-               O limite será renovado automaticamente amanhã.
-             </p>
-          </div>
-        ) : (
           <div className="bg-white p-3 rounded-2xl shadow-lg border border-gray-100 flex items-center gap-2">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-              placeholder="Pergunte sobre sintomas, enxoval..."
+              placeholder="Digite 'ansiedade', 'enjoo' ou escolha um tema..."
               className="flex-1 bg-gray-50 rounded-xl px-4 py-3 outline-none text-gray-700 placeholder-gray-400 focus:ring-2 focus:ring-baby-pink-dark/50"
+              disabled={isLoading}
             />
             <button
-              onClick={handleSend}
+              onClick={() => handleSend()}
               disabled={isLoading || !input.trim()}
               className="bg-baby-pink-dark hover:bg-pink-400 disabled:opacity-50 text-white p-3 rounded-xl transition-colors"
             >
               <Send className="w-5 h-5" />
             </button>
           </div>
-        )}
       </div>
     </div>
   );

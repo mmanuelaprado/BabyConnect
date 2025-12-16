@@ -65,8 +65,8 @@ const INITIAL_POSTS: Post[] = [
 
 const INITIAL_CONFIG: AppConfig = {
   appName: 'BabyConnect',
-  logoUrl: '',
-  bannerUrl: '',
+  logoUrl: '', // Will use default icon in Layout if empty
+  bannerUrl: 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&q=80&w=1200&h=400', // Default nice banner
   footerText: 'Feito com amor para mamães.',
   socialLink: '',
   whatsappGroupLink: 'https://chat.whatsapp.com/GXMM6PFQhKAIrrgT42zbdA',

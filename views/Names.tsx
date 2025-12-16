@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
 import { Search, Heart, Loader2, Info } from 'lucide-react';
-import { getNameMeaning } from '../services/ai';
 import { NameMeaning } from '../types';
 import { toggleFavoriteName, getUserSettings } from '../services/storage';
+import { NAMES_DB, NAME_AFFECTION_PHRASES } from '../data/namesDb';
 import AdBanner from '../components/AdBanner';
 
 const Names: React.FC = () => {
@@ -13,18 +13,47 @@ const Names: React.FC = () => {
   const [favorites, setFavorites] = useState<NameMeaning[]>(getUserSettings().nameFavorites);
   const [activeTab, setActiveTab] = useState<'search' | 'favorites'>('search');
 
+  // Helper to get random suggestions
+  const getRandomSuggestions = (count: number, excludeName: string): string[] => {
+    const suggestions: string[] = [];
+    const available = NAMES_DB.filter(n => n.name.toLowerCase() !== excludeName.toLowerCase());
+    
+    for (let i = 0; i < count; i++) {
+       const random = available[Math.floor(Math.random() * available.length)];
+       if (random && !suggestions.includes(random.name)) {
+         suggestions.push(random.name);
+       }
+    }
+    return suggestions;
+  };
+
   const handleSearch = async () => {
     if (!query.trim()) return;
     setLoading(true);
     setResult(null);
-    try {
-      const data = await getNameMeaning(query);
-      setResult(data);
-    } catch (e) {
-      alert('Ocorreu um erro ao buscar o nome. Tente novamente.');
-    } finally {
+
+    // Simulate small network delay for UX
+    setTimeout(() => {
+      const cleanQuery = query.trim().toLowerCase();
+      
+      // 1. Find exact or partial match
+      const match = NAMES_DB.find(n => n.name.toLowerCase() === cleanQuery);
+      
+      // 2. Select a random affectionate phrase
+      const randomPhrase = NAME_AFFECTION_PHRASES[Math.floor(Math.random() * NAME_AFFECTION_PHRASES.length)];
+      
+      // 3. Generate result
+      const nameData: NameMeaning = {
+        name: match ? match.name : query.trim(), // Use input capitalization if not found
+        meaning: match ? match.meaning : "Significado único e especial.",
+        origin: match ? "Origem Especial" : "Nome Único",
+        personality: randomPhrase, // The prompt requested affectionate responses for names not in list, and implied validation for all
+        suggestions: getRandomSuggestions(3, cleanQuery)
+      };
+
+      setResult(nameData);
       setLoading(false);
-    }
+    }, 600);
   };
 
   const handleFavorite = (item: NameMeaning) => {
@@ -91,14 +120,14 @@ const Names: React.FC = () => {
 
               <div>
                 <h3 className="font-bold text-gray-600 text-sm mb-1 flex items-center gap-2">
-                   <Info className="w-4 h-4" /> Personalidade
+                   <Info className="w-4 h-4" /> Mensagem da Doula
                 </h3>
-                <p className="text-gray-600 text-sm leading-relaxed">{result.personality}</p>
+                <p className="text-gray-600 text-sm leading-relaxed italic">"{result.personality}"</p>
               </div>
 
               {result.suggestions?.length > 0 && (
                 <div>
-                   <h3 className="font-bold text-gray-600 text-sm mb-2">Nomes parecidos</h3>
+                   <h3 className="font-bold text-gray-600 text-sm mb-2">Veja também</h3>
                    <div className="flex flex-wrap gap-2">
                      {result.suggestions.map(s => (
                        <button key={s} onClick={() => { setQuery(s); handleSearch(); }} className="bg-gray-50 text-gray-600 text-sm px-3 py-1 rounded-full hover:bg-lilac hover:text-lilac-dark transition-colors">
