@@ -5,9 +5,16 @@ export interface Product {
   description: string;
   price?: string;
   image: string;
-  category: 'amamentacao' | 'enxoval' | 'essenciais' | 'mae' | 'bebe';
+  category: 'amamentacao' | 'enxoval' | 'essenciais' | 'mae' | 'bebe' | 'comunidade';
   shopeeLink: string;
   active: boolean;
+  // User Store specific
+  ownerId?: string;
+  ownerName?: string; // Nome da mamãe que está vendendo
+  ownerPhone?: string; // WhatsApp para contato
+  createdAt?: number;
+  city?: string;
+  state?: string;
 }
 
 export interface ChecklistItem {
@@ -81,6 +88,7 @@ export interface UserSettings {
   userName?: string;
   userBio?: string;
   userPhoto?: string;
+  userPhone?: string; // Added for marketplace contact
   // New Features
   journalEntries: JournalEntry[];
   kickSessions: KickSession[];

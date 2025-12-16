@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Heart, MessageCircle, Send, Image as ImageIcon, Sparkles, User, MoreHorizontal, Bookmark, X, Settings, Camera, Check, Bell, Lock, LogIn, UserPlus, Eye, EyeOff, LogOut } from 'lucide-react';
-import { getPosts, savePost, toggleLikePost, addCommentToPost, getUserSettings, saveUserSettings, fileToBase64, getSession, loginUser, registerUser, logoutUser } from '../services/storage';
-import { Post, Comment, UserSettings } from '../types';
+import { Heart, MessageCircle, Send, Image as ImageIcon, Sparkles, User, MoreHorizontal, Bookmark, X, Settings, Camera, Check, Bell, Lock, LogIn, UserPlus, Eye, EyeOff, LogOut, ShoppingBag, Trash } from 'lucide-react';
+import { getPosts, savePost, toggleLikePost, addCommentToPost, getUserSettings, saveUserSettings, fileToBase64, getSession, loginUser, registerUser, logoutUser, getMarketplaceProducts, deleteMarketplaceProduct } from '../services/storage';
+import { Post, Comment, UserSettings, Product } from '../types';
 
 const Social: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -31,6 +31,7 @@ const Social: React.FC = () => {
   const [editName, setEditName] = useState('');
   const [editBio, setEditBio] = useState('');
   const [editPhoto, setEditPhoto] = useState('');
+  const [myProducts, setMyProducts] = useState<Product[]>([]); // Store items
   const profileFileInputRef = useRef<HTMLInputElement>(null);
 
   // User Info for Context
@@ -191,7 +192,21 @@ const Social: React.FC = () => {
     setEditName(userSettings.userName || 'Mamãe');
     setEditBio(userSettings.userBio || '');
     setEditPhoto(userSettings.userPhoto || '');
+    
+    // Load my products
+    const allProducts = getMarketplaceProducts();
+    const mine = allProducts.filter(p => p.ownerName === userSettings.userName);
+    setMyProducts(mine);
+    
     setShowProfileModal(true);
+  };
+
+  const handleDeleteProduct = (id: string) => {
+    if(confirm('Tem certeza que deseja remover este produto?')) {
+      const updatedAll = deleteMarketplaceProduct(id);
+      const mine = updatedAll.filter(p => p.ownerName === userSettings.userName);
+      setMyProducts(mine);
+    }
   };
 
   const saveProfile = () => {
@@ -511,7 +526,7 @@ const Social: React.FC = () => {
       {/* Profile Modal */}
       {showProfileModal && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-           <div className="bg-white w-full max-w-sm rounded-3xl p-6 relative">
+           <div className="bg-white w-full max-w-sm rounded-3xl p-6 relative max-h-[90vh] overflow-y-auto">
               <button onClick={() => setShowProfileModal(false)} className="absolute top-4 right-4 text-gray-400">
                 <X className="w-6 h-6" />
               </button>
@@ -561,9 +576,41 @@ const Social: React.FC = () => {
                      maxLength={50}
                    />
                  </div>
+
+                 {/* Meus Desapegos Section */}
+                 <div className="mt-4 border-t pt-4">
+                   <h4 className="font-bold text-gray-700 mb-3 flex items-center gap-2 text-sm">
+                     <ShoppingBag className="w-4 h-4 text-pink-500"/> Meus Desapegos
+                   </h4>
+                   <div className="space-y-2">
+                     {myProducts.length > 0 ? (
+                       myProducts.map(p => (
+                         <div key={p.id} className="flex items-center gap-3 bg-gray-50 p-2 rounded-xl">
+                            <div className="w-10 h-10 bg-white rounded-lg overflow-hidden shrink-0">
+                               <img src={p.image} className="w-full h-full object-cover" alt="" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                               <p className="text-xs font-bold text-gray-700 truncate">{p.name}</p>
+                               <p className="text-[10px] text-gray-500">{p.price}</p>
+                            </div>
+                            <button 
+                              onClick={() => handleDeleteProduct(p.id)}
+                              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                              title="Excluir Produto"
+                            >
+                               <Trash className="w-4 h-4" />
+                            </button>
+                         </div>
+                       ))
+                     ) : (
+                       <p className="text-xs text-gray-400 italic text-center py-2">Você ainda não anunciou nada.</p>
+                     )}
+                   </div>
+                 </div>
+
                  <button 
                    onClick={saveProfile}
-                   className="w-full bg-lilac-dark text-white py-3 rounded-xl font-bold hover:bg-purple-400 transition-colors"
+                   className="w-full bg-lilac-dark text-white py-3 rounded-xl font-bold hover:bg-purple-400 transition-colors mt-2"
                  >
                    Salvar Alterações
                  </button>

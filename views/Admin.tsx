@@ -1,13 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
-import { Lock, Save, Plus, Trash, Edit, X, ArrowLeft, Check, ShoppingBag, ListTodo, Calendar, Settings, MessageCircle, Sparkles, Loader2, Users, Key, AlertTriangle } from 'lucide-react';
+import { Lock, Save, Plus, Trash, Edit, X, ArrowLeft, Check, ShoppingBag, ListTodo, Calendar, Settings, MessageCircle, Sparkles, Loader2, Users, Key, AlertTriangle, Upload, Image as ImageIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { 
   getProducts, saveProducts, 
   getChecklistDefinitions, saveChecklistDefinitions,
   getWeeksData, saveWeeksData,
   getConfig, saveConfig,
-  getPosts, deletePost
+  getPosts, deletePost,
+  fileToBase64
 } from '../services/storage';
 import { generateWeeklyInfo } from '../services/ai';
 import { Product, ChecklistItem, WeekInfo, AppConfig, Post } from '../types';
@@ -89,6 +90,7 @@ const Admin: React.FC = () => {
       category: 'enxoval',
       image: 'https://picsum.photos/400/400',
       shopeeLink: '',
+      price: '',
       active: true,
     };
     setProducts([...products, newP]);
@@ -104,6 +106,18 @@ const Admin: React.FC = () => {
   const handleUpdateProduct = (field: keyof Product, value: any) => {
     if (!editingProduct) return;
     setEditingProduct({ ...editingProduct, [field]: value });
+  };
+
+  const handleProductImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      try {
+        const base64 = await fileToBase64(e.target.files[0]);
+        handleUpdateProduct('image', base64);
+      } catch (error) {
+        console.error("Error uploading image", error);
+        alert("Erro ao processar a imagem.");
+      }
+    }
   };
 
   const saveProductEdit = () => {
@@ -459,8 +473,9 @@ const Admin: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {products.map(p => (
                 <div key={p.id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex gap-4">
-                  <div className="w-20 h-20 bg-gray-50 rounded-lg flex-shrink-0 overflow-hidden">
+                  <div className="w-20 h-20 bg-gray-50 rounded-lg flex-shrink-0 overflow-hidden relative">
                     <img src={p.image} alt="" className="w-full h-full object-cover" />
+                    {p.price && <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-[10px] text-center py-0.5">{p.price}</div>}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start">
@@ -487,15 +502,48 @@ const Admin: React.FC = () => {
                   <div className="space-y-4">
                     <input className="w-full border p-2 rounded-xl" placeholder="Nome" value={editingProduct.name} onChange={e => handleUpdateProduct('name', e.target.value)} />
                     <textarea className="w-full border p-2 rounded-xl" placeholder="Descrição" value={editingProduct.description} onChange={e => handleUpdateProduct('description', e.target.value)} />
-                    <input className="w-full border p-2 rounded-xl" placeholder="URL da Imagem" value={editingProduct.image} onChange={e => handleUpdateProduct('image', e.target.value)} />
-                    <input className="w-full border p-2 rounded-xl" placeholder="Link Shopee" value={editingProduct.shopeeLink} onChange={e => handleUpdateProduct('shopeeLink', e.target.value)} />
-                    <select className="w-full border p-2 rounded-xl" value={editingProduct.category} onChange={e => handleUpdateProduct('category', e.target.value)}>
-                      <option value="amamentacao">Amamentação</option>
-                      <option value="enxoval">Enxoval</option>
-                      <option value="essenciais">Essenciais</option>
-                      <option value="mae">Mãe</option>
-                      <option value="bebe">Bebê</option>
-                    </select>
+                    <div className="grid grid-cols-2 gap-4">
+                       <input className="w-full border p-2 rounded-xl" placeholder="Preço (ex: R$ 50,00)" value={editingProduct.price || ''} onChange={e => handleUpdateProduct('price', e.target.value)} />
+                       <select className="w-full border p-2 rounded-xl" value={editingProduct.category} onChange={e => handleUpdateProduct('category', e.target.value)}>
+                        <option value="amamentacao">Amamentação</option>
+                        <option value="enxoval">Enxoval</option>
+                        <option value="essenciais">Essenciais</option>
+                        <option value="mae">Mãe</option>
+                        <option value="bebe">Bebê</option>
+                      </select>
+                    </div>
+
+                    {/* Image Upload Area */}
+                    <div className="border border-gray-200 rounded-xl p-4 bg-gray-50">
+                       <label className="block text-sm font-bold text-gray-500 mb-2">Imagem do Produto</label>
+                       <div className="flex items-center gap-4">
+                          <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden shrink-0 flex items-center justify-center border border-gray-300">
+                             {editingProduct.image ? (
+                               <img src={editingProduct.image} className="w-full h-full object-cover" />
+                             ) : (
+                               <ImageIcon className="text-gray-400 w-8 h-8" />
+                             )}
+                          </div>
+                          <div className="flex-1 space-y-2">
+                             <input 
+                               className="w-full border p-2 rounded-xl text-sm" 
+                               placeholder="Ou cole a URL da imagem aqui..." 
+                               value={editingProduct.image} 
+                               onChange={e => handleUpdateProduct('image', e.target.value)} 
+                             />
+                             <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-400">ou</span>
+                                <label className="cursor-pointer bg-white border border-gray-300 hover:bg-gray-50 text-gray-600 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 transition-colors">
+                                   <Upload className="w-3 h-3" /> Fazer Upload
+                                   <input type="file" className="hidden" accept="image/*" onChange={handleProductImageUpload} />
+                                </label>
+                             </div>
+                          </div>
+                       </div>
+                    </div>
+
+                    <input className="w-full border p-2 rounded-xl" placeholder="Link de Compra" value={editingProduct.shopeeLink} onChange={e => handleUpdateProduct('shopeeLink', e.target.value)} />
+                    
                     <div className="flex items-center gap-2">
                        <input type="checkbox" checked={editingProduct.active} onChange={e => handleUpdateProduct('active', e.target.checked)} />
                        <label>Produto Ativo</label>
