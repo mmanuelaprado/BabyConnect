@@ -5,13 +5,12 @@ import { getConfig } from "./storage";
 // Helper to determine the best available API Key
 const getApiKey = () => {
   // 1. Try Local Storage (User configured via Admin Panel)
-  // This is the most reliable method for client-side Vercel deployments without backend
   const config = getConfig();
   if (config.apiKey && config.apiKey.trim() !== '') {
     return config.apiKey;
   }
 
-  // 2. Try Standard Environment Variable (Process - Webpack/CRA/Node)
+  // 2. Try Standard Environment Variable (Process - Webpack/CRA/Node) - SAFE ACCESS
   try {
     if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
       return process.env.API_KEY;
@@ -40,7 +39,7 @@ const getAiClient = () => {
   if (!apiKey) {
     console.warn("Gemini API Key missing. Configure in Admin or Env Vars.");
   }
-  return new GoogleGenAI({ apiKey });
+  return new GoogleGenAI({ apiKey: apiKey || 'dummy-key-to-prevent-crash' });
 }
 
 export const getDoulaChat = () => {
