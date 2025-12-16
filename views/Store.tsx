@@ -370,9 +370,9 @@ const Store: React.FC = () => {
 
       {/* Modal Desapegar */}
       {showSellModal && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-           <div className="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl shadow-xl animate-slide-up max-h-[90vh] overflow-y-auto">
-              <div className="p-4 border-b flex justify-between items-center sticky top-0 bg-white z-10">
+        <div className="fixed inset-0 bg-black/60 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
+           <div className="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl shadow-xl animate-slide-up max-h-[90vh] flex flex-col">
+              <div className="p-4 border-b flex justify-between items-center shrink-0">
                  <h3 className="font-bold text-gray-700 flex items-center gap-2">
                    <Plus className="w-5 h-5 text-pink-500" /> Novo Anúncio
                  </h3>
@@ -381,7 +381,7 @@ const Store: React.FC = () => {
                  </button>
               </div>
 
-              <div className="p-6 space-y-4">
+              <div className="p-6 space-y-4 overflow-y-auto">
                  {/* Image Upload */}
                  <div className="flex flex-col items-center justify-center">
                     <div 
@@ -475,10 +475,12 @@ const Store: React.FC = () => {
                       <p className="text-[10px] text-green-600 mt-1">As interessadas entrarão em contato direto com você.</p>
                     </div>
                  </div>
+              </div>
 
+              <div className="p-4 border-t bg-white shrink-0 pb-safe md:pb-4 rounded-b-3xl">
                  <button 
                    onClick={handleCreateProduct}
-                   className="w-full bg-pink-500 text-white py-4 rounded-xl font-bold shadow-md hover:bg-pink-600 transition-colors mt-2"
+                   className="w-full bg-pink-500 text-white py-4 rounded-xl font-bold shadow-md hover:bg-pink-600 transition-colors"
                  >
                    Publicar Anúncio
                  </button>
