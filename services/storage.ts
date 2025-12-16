@@ -1,8 +1,8 @@
 
 import { Product, ChecklistItem, WeekInfo, AppConfig, UserSettings, NameMeaning, Post, Comment, JournalEntry, KickSession, Contraction, UserAccount, AuthSession } from '../types';
 
-// Data Version Control - Alterado para forçar a regeneração dos dados
-const DATA_VERSION = 'v6_weeks_updated';
+// Data Version Control
+const DATA_VERSION = 'v7_safe_storage';
 
 // Initial Seed Data
 const INITIAL_PRODUCTS: Product[] = [
@@ -564,6 +564,7 @@ export const initStorage = () => {
   const currentVersion = localStorage.getItem(STORAGE_KEYS.DATA_VERSION);
   
   if (currentVersion !== DATA_VERSION) {
+    // Only initialize if keys don't exist to PREVENT OVERWRITING user edits
     if (!localStorage.getItem(STORAGE_KEYS.PRODUCTS)) {
       localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(INITIAL_PRODUCTS));
     }
@@ -577,10 +578,13 @@ export const initStorage = () => {
       localStorage.setItem(STORAGE_KEYS.MARKETPLACE, JSON.stringify([]));
     }
 
-    // Always update static weeks data on version change
-    localStorage.setItem(STORAGE_KEYS.WEEKS, JSON.stringify(STATIC_WEEKS_DB));
+    // UPDATED: Now checks if WEEKS exists before writing. 
+    // This ensures AI-generated or Admin-edited week info is NOT lost on update.
+    if (!localStorage.getItem(STORAGE_KEYS.WEEKS)) {
+      localStorage.setItem(STORAGE_KEYS.WEEKS, JSON.stringify(STATIC_WEEKS_DB));
+    }
     
-    // Config migration
+    // Config migration - keeps existing config but ensures structure
     const savedConfig = localStorage.getItem(STORAGE_KEYS.CONFIG);
     const config = savedConfig ? { ...INITIAL_CONFIG, ...JSON.parse(savedConfig) } : INITIAL_CONFIG;
     localStorage.setItem(STORAGE_KEYS.CONFIG, JSON.stringify(config));
