@@ -1,8 +1,10 @@
+
 import React, { useState } from 'react';
 import { Search, Heart, Loader2, Info } from 'lucide-react';
 import { getNameMeaning } from '../services/ai';
 import { NameMeaning } from '../types';
 import { toggleFavoriteName, getUserSettings } from '../services/storage';
+import AdBanner from '../components/AdBanner';
 
 const Names: React.FC = () => {
   const [query, setQuery] = useState('');
@@ -133,6 +135,8 @@ const Names: React.FC = () => {
           )}
         </div>
       )}
+      
+      <AdBanner />
     </div>
   );
 };

@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Heart, MessageCircle, Send, Image as ImageIcon, Sparkles, User, MoreHorizontal, Bookmark, X, Settings, Camera, Check, Bell, Lock, LogIn, UserPlus, Eye, EyeOff, LogOut, ShoppingBag, Trash } from 'lucide-react';
+import { Heart, MessageCircle, Send, Image as ImageIcon, Sparkles, User, MoreHorizontal, Bookmark, X, Settings, Camera, Check, Bell, Lock, LogIn, UserPlus, Eye, EyeOff, LogOut, ShoppingBag, Trash, Activity, Clock } from 'lucide-react';
 import { getPosts, savePost, toggleLikePost, addCommentToPost, getUserSettings, saveUserSettings, fileToBase64, getSession, loginUser, registerUser, logoutUser, getMarketplaceProducts, deleteMarketplaceProduct } from '../services/storage';
 import { Post, Comment, UserSettings, Product } from '../types';
+import AdBanner from '../components/AdBanner';
 
 const Social: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -416,6 +417,8 @@ const Social: React.FC = () => {
           </div>
         ))}
       </div>
+
+      <AdBanner />
 
       {/* Story Viewer Overlay */}
       {viewingStory && currentStory && (

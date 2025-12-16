@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ExternalLink, Filter, Share2, Plus, User, MessageCircle, Phone, X, Upload, Image as ImageIcon, Trash, ShoppingBag, AlertTriangle, MapPin, Search } from 'lucide-react';
 import { getProducts, getMarketplaceProducts, saveMarketplaceProduct, deleteMarketplaceProduct, getUserSettings, saveUserSettings, fileToBase64 } from '../services/storage';
 import { Product, UserSettings } from '../types';
+import AdBanner from '../components/AdBanner';
 
 const Store: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'official' | 'community'>('official');
@@ -158,6 +159,7 @@ const Store: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <AdBanner />
       {/* Header Tabs */}
       <div className="flex bg-gray-100 p-1 rounded-2xl">
         <button 

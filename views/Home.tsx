@@ -1,9 +1,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, MessageCircle, Sparkles, ShoppingBag, Users, Heart, ListTodo } from 'lucide-react';
+import { Calendar, MessageCircle, Sparkles, ShoppingBag, Users, Heart, ListTodo, Search } from 'lucide-react';
 import { getUserSettings, getWeeksData, getConfig } from '../services/storage';
 import { UserSettings, WeekInfo, AppConfig } from '../types';
+import AdBanner from '../components/AdBanner';
 
 const Home: React.FC = () => {
   const [user, setUser] = useState<UserSettings>(getUserSettings());
@@ -86,6 +87,8 @@ const Home: React.FC = () => {
         )}
       </div>
 
+      <AdBanner />
+
       {/* WhatsApp Community Button */}
       {config.whatsappGroupLink && (
         <a 
@@ -99,33 +102,24 @@ const Home: React.FC = () => {
                 <Users className="w-6 h-6 text-white" />
              </div>
              <div>
-                <h3 className="text-white font-bold text-lg leading-tight">Entre no Grupo VIP</h3>
-                <p className="text-white/90 text-xs">Comunidade exclusiva de mamães</p>
+               <h3 className="font-bold text-white text-lg">Comunidade VIP</h3>
+               <p className="text-green-100 text-sm">Participe do nosso grupo no WhatsApp</p>
              </div>
-          </div>
-          <div className="bg-white text-[#25D366] px-4 py-2 rounded-full text-sm font-bold">
-             Entrar
           </div>
         </a>
       )}
 
-      {/* Quick Actions Grid */}
+      {/* Main Menu Grid */}
       <div className="grid grid-cols-2 gap-4">
+        <MenuItem to="/tracker" icon={Calendar} title="Minha Gravidez" color="bg-baby-pink-dark" />
         <MenuItem to="/social" icon={Heart} title="Momentos" color="bg-pink-400" />
-        <MenuItem to="/checklist" icon={ListTodo} title="Enxoval" color="bg-baby-pink-dark" />
-        <MenuItem to="/names" icon={Sparkles} title="Nomes" color="bg-baby-blue-dark" />
-        <MenuItem to="/tracker" icon={Calendar} title="Diário" color="bg-purple-300" />
+        <MenuItem to="/doula" icon={MessageCircle} title="Doula AI" color="bg-lilac-dark" />
+        <MenuItem to="/checklist" icon={ListTodo} title="Enxoval" color="bg-blue-300" />
+        <MenuItem to="/store" icon={ShoppingBag} title="Lojinha" color="bg-orange-300" />
+        <MenuItem to="/names" icon={Search} title="Nomes" color="bg-green-300" />
       </div>
 
-      {/* Daily Tip */}
-      {currentWeekInfo && (
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
-          <h3 className="font-bold text-lilac-dark mb-2 flex items-center gap-2">
-            <Sparkles className="w-4 h-4" /> Dica da semana
-          </h3>
-          <p className="text-gray-600 leading-relaxed">{currentWeekInfo.tips}</p>
-        </div>
-      )}
+      <AdBanner />
     </div>
   );
 };

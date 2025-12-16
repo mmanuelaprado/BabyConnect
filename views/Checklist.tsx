@@ -1,7 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { ShoppingBag, Check, ExternalLink } from 'lucide-react';
 import { getChecklistDefinitions, getUserSettings, toggleChecklistItem } from '../services/storage';
 import { ChecklistItem } from '../types';
+import AdBanner from '../components/AdBanner';
 
 const Checklist: React.FC = () => {
   const [items, setItems] = useState<ChecklistItem[]>([]);
@@ -107,6 +109,8 @@ const Checklist: React.FC = () => {
            </div>
         )}
       </div>
+
+      <AdBanner />
     </div>
   );
 };

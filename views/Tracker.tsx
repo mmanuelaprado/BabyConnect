@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Calendar, Info, AlertCircle, CheckCircle, ExternalLink, ListTodo, BookHeart, Activity, Clock, Play, Pause, Trash } from 'lucide-react';
 import { getWeeksData, getUserSettings, saveUserSettings, toggleWeeklyTask, addJournalEntry, deleteJournalEntry, saveKickSession, saveContractions } from '../services/storage';
 import { WeekInfo, UserSettings, JournalEntry, KickSession, Contraction } from '../types';
+import AdBanner from '../components/AdBanner';
 
 const Tracker: React.FC = () => {
   const [user, setUser] = useState<UserSettings>(getUserSettings());
@@ -266,6 +267,8 @@ const Tracker: React.FC = () => {
              </p>
           </div>
 
+          <AdBanner />
+
           {/* Info Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
              <div className="bg-blue-50 p-5 rounded-2xl border border-blue-100">
@@ -378,6 +381,8 @@ const Tracker: React.FC = () => {
               </div>
            </div>
 
+           <AdBanner />
+
            {/* Entries List */}
            <div className="space-y-4">
              {user.journalEntries && user.journalEntries.length > 0 ? (
@@ -476,6 +481,8 @@ const Tracker: React.FC = () => {
                 </div>
               )}
            </div>
+
+           <AdBanner />
 
            {/* Contraction Timer */}
            <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
